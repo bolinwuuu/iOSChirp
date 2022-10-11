@@ -41,6 +41,8 @@ class Run_Chirp {
     // frequency vector, for runMode 3
     var freq: [Double]
     
+    //var freqw: [Double]
+    
     // waveform vector, for runMode 2
     var h: [Double]
 
@@ -61,6 +63,8 @@ class Run_Chirp {
         let c:Double = 2.998e8;
         let pc:Double = 3.086e16;
         let msun:Double = 2.0e30;
+        
+        
 
         // Compute Schwarzchild radii of stars
 
@@ -100,8 +104,9 @@ class Run_Chirp {
         print("Detection band low frequency = " + String(fbandlo) + "Hz\n--> Time to coalescence = " + String(tau) + " s\n");
 
         // Sampling rate (Hz) - fixed at 48 kHz for mp4 output
-
-        let fsamp:Double = 48000;
+        
+        let downSample: Double = 10;
+        let fsamp:Double = 48000 / downSample;
         var dt = 1/fsamp;
 
         // Length of time to simulate (round up to nearest tenth of an integer second and add a tenth)
@@ -111,7 +116,7 @@ class Run_Chirp {
         // Create time sample container
 
         sampleN = floor(fsamp*upperT);
-        //var t = Array(0...Int(upperN)-1);
+
         t = Array(stride(from: 0, through: sampleN-1, by: 1));
         t = vDSP.multiply(dt, t);
 
@@ -127,18 +132,20 @@ class Run_Chirp {
         // (Based on PPNP Eqn 73)
         
         //var minusdt = -dt;
+        //var vzero:Double = 0;
+        //var iTau:Double = floor(tau / dt);
+
         
-
-        var vzero:Double = 0;
-        var iTau:Double = floor(tau / dt);
-
         var lastSample = floor((pow(ftouch / fcoeff, -8/3) - tau) / -dt);
+        
         var maxFreq:Double = pow(-lastSample * dt + tau, -3/8) * fcoeff;
         
         var freq1 = Array(stride(from: 0, through: lastSample, by: 1));
+        
         vDSP.multiply(-dt, freq1, result: &freq1);
-        //var freq1 = [Float](repeating: 0, count: Int(iTau) + 1);
+        
         var freq2 = [Double](repeating: maxFreq, count: Int(sampleN - lastSample) - 1);
+        
         /*
         vDSP_vramp(&vzero,
                    &minusdt,
@@ -147,7 +154,7 @@ class Run_Chirp {
                    vDSP_Length(iTau + 1));*/
 
         vDSP.add(tau, freq1, result: &freq1);
-        //freq = freq.map{pow(Float($0), -3/8)};
+
         
         var exp = [Double](repeating: -3/8, count: freq1.count);
         freq = vForce.pow(bases: freq1, exponents: exp);
@@ -156,15 +163,17 @@ class Run_Chirp {
 
         //Create amplitude value vs time (up to last time sample before touch)
         // (Based on PPNP Eqn 74)
-        
+   
         exp = [Double](repeating: -1/4, count: freq1.count);
         var amp = vForce.pow(bases: freq1, exponents: exp);
         amp = vDSP.multiply(hcoeff * hscale, amp);
-        var amp2 = [Double](repeating: 0, count: Int(sampleN - lastSample) - 1);
+        var amp2 = [Double](repeating: 0, count: freq2.count);
         amp += amp2;
+         
         
         // Generate strain signal in time domain
-
+        
+        
         var phi = [Double](repeating: 0, count: freq.count);
         // Cumulative sum of freq
         phi[0] = freq[0];
@@ -172,6 +181,7 @@ class Run_Chirp {
             phi[index] = phi[index - 1] + freq[index];
         }
         vDSP.multiply(2 * Double.pi * dt, phi, result: &phi);
+
         
         h = vDSP.multiply(amp, vForce.sin(phi));
     } // initializer
@@ -254,9 +264,11 @@ class Run_Chirp {
 
 var test = Run_Chirp(mass1: 5, mass2: 20);
 
-var runMode = 3;
+var runMode = 2;
 
-var data = test.run_mode(runMode: runMode);
+var waveData = test.run_mode(runMode: 2);
+
+var freqData = test.run_mode(runMode: 3);
 
 var y_label = test.y_label(runMode: runMode);
 

@@ -12,38 +12,85 @@ import Charts
 struct ContentView: View {
     
     var body: some View {
+        
         VStack {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack{
-                    Text(chart_title)
-                        .fontWeight(.semibold)
-                        .font(.system(size: 40))
+            List {
+                Section {
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack{
+                            Text("Waveform in Time")
+                                .fontWeight(.semibold)
+                                .font(.system(size: 40))
+                        }
+                        WaveformChart();
+                    }
+                    .frame(width: 700, height: 450, alignment: .top)
+                    //.frame(height: 400)
                 }
-                AnimatedChart();
+                Section {
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack{
+                            Text("Frequency vs Time")
+                                .fontWeight(.semibold)
+                                .font(.system(size: 40))
+                        }
+                        FreqencyChart();
+                    }
+                    .frame(width: 700, height: 450, alignment: .top)
+                }
             }
         }
-        .frame(width: 700, height: 700, alignment: .top)
+        //.frame(width: 700, height: 700, alignment: .top)
     }
     
     @ViewBuilder
-    func AnimatedChart() -> some View {
-        Chart(data, id: \.x_val) {
+    func WaveformChart() -> some View {
+        Chart(waveData, id: \.x_val) {
             LineMark(
                 x: .value("Time", $0.x_val),
                 y: .value("Waveform Value", $0.y_val)
             )
         }
         .chartXScale(domain:0...test.max_time())
-        .chartXAxisLabel(position: .bottom, alignment: .center) {
+        .chartXAxisLabel (position: .bottom, alignment: .center) {
             Text("Time (s)")
                 .font(.system(size: 30))
             
         }
-        .chartYAxisLabel(position: .leading) {
-            Text(y_label)
-                .font(.system(size: 30))
-                //.rotationEffect(Angle(degrees: 0))
+        .chartYAxis {
+            AxisMarks(position: .leading)
+
         }
+        .chartYAxisLabel(position: .leading) {
+            Text("h(t) [arb. units]")
+                .font(.system(size: 30))
+        }
+
+    }
+    
+    @ViewBuilder
+    func FreqencyChart() -> some View {
+        Chart(freqData, id: \.x_val) {
+            LineMark(
+                x: .value("Time", $0.x_val),
+                y: .value("Frequency", $0.y_val)
+            )
+        }
+        .chartXScale(domain:0...test.max_time())
+        .chartXAxisLabel (position: .bottom, alignment: .center) {
+            Text("Time (s)")
+                .font(.system(size: 30))
+            
+        }
+        .chartYAxis {
+            AxisMarks(position: .leading)
+
+        }
+        .chartYAxisLabel(position: .leading) {
+            Text("Frequency (Hz)")
+                .font(.system(size: 30))
+        }
+
     }
         
     /*
