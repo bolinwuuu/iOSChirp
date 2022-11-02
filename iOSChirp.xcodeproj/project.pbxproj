@@ -15,6 +15,7 @@
 		14C417FD28E8DCB8004B84B6 /* iOSChirpUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14C417FC28E8DCB8004B84B6 /* iOSChirpUITests.swift */; };
 		14C417FF28E8DCB8004B84B6 /* iOSChirpUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14C417FE28E8DCB8004B84B6 /* iOSChirpUITestsLaunchTests.swift */; };
 		14C4180C28E8DCF6004B84B6 /* run_chirp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14C4180B28E8DCF6004B84B6 /* run_chirp.swift */; };
+		14DDFD762912EC25003C9CD5 /* ColorTable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14DDFD752912EC25003C9CD5 /* ColorTable.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,6 +47,7 @@
 		14C417FC28E8DCB8004B84B6 /* iOSChirpUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSChirpUITests.swift; sourceTree = "<group>"; };
 		14C417FE28E8DCB8004B84B6 /* iOSChirpUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSChirpUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		14C4180B28E8DCF6004B84B6 /* run_chirp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = run_chirp.swift; sourceTree = "<group>"; };
+		14DDFD752912EC25003C9CD5 /* ColorTable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorTable.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -101,6 +103,7 @@
 				14C417E528E8DCB8004B84B6 /* Assets.xcassets */,
 				14C417E728E8DCB8004B84B6 /* Preview Content */,
 				14C4180B28E8DCF6004B84B6 /* run_chirp.swift */,
+				14DDFD752912EC25003C9CD5 /* ColorTable.swift */,
 			);
 			path = iOSChirp;
 			sourceTree = "<group>";
@@ -262,6 +265,7 @@
 			files = (
 				14C417E428E8DCB7004B84B6 /* ContentView.swift in Sources */,
 				14C417E228E8DCB7004B84B6 /* iOSChirpApp.swift in Sources */,
+				14DDFD762912EC25003C9CD5 /* ColorTable.swift in Sources */,
 				14C4180C28E8DCF6004B84B6 /* run_chirp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
