@@ -15,7 +15,7 @@ struct ContentView: View {
         
         VStack {
             List {
-                /*
+                
                 Section {
                     VStack(alignment: .leading, spacing: 12) {
                         HStack{
@@ -39,8 +39,8 @@ struct ContentView: View {
                         }
                         //WaveformChart();
                     }
-                    .frame(width: 700, height: 450, alignment: .top)
-                }*/
+                    .frame(width: 700, height: 350, alignment: .top)
+                }
                 
                 Section {
                     VStack(alignment: .leading, spacing: 12) {
@@ -65,7 +65,7 @@ struct ContentView: View {
                         }
                         //FreqencyChart();
                     }
-                    .frame(width: 700, height: 450, alignment: .top)
+                    .frame(width: 700, height: 350, alignment: .top)
                 }
                 
                 Section {
@@ -86,7 +86,7 @@ struct ContentView: View {
                             Spectrogram();
                         }
                     }
-                    .frame(width: 700, height: 450, alignment: .top)
+                    .frame(width: 700, height: 350, alignment: .top)
                 }
 
             }
@@ -137,7 +137,7 @@ struct ContentView: View {
         .chartYAxis {
             AxisMarks(position: .leading)
         }
-        .chartYScale(type: .log)
+        //.chartYScale(type: .log)
         /*
         .chartYAxisLabel(position: .leading) {
             Text("Frequency (Hz)")
@@ -153,7 +153,7 @@ struct ContentView: View {
     func Spectrogram() -> some View {
         Image(uiImage: im)
             .resizable()
-            .frame(width: 600, height: 350)
+            .frame(width: 600, height: 280)
     }
         
     /*

@@ -45,6 +45,9 @@ class Run_Chirp {
     
     // waveform vector, for runMode 2
     var h: [Double]
+    
+    // max value of h
+    var max_h: Double
 
     
     // initializer, all computations for the vectors above
@@ -184,6 +187,8 @@ class Run_Chirp {
 
         
         h = vDSP.multiply(amp, vForce.sin(phi));
+        
+        max_h = vDSP.maximum(h);
     } // initializer
     
     
