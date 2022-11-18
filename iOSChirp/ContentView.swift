@@ -39,7 +39,7 @@ struct ContentView: View {
                         }
                         //WaveformChart();
                     }
-                    .frame(width: 700, height: 350, alignment: .top)
+                    .frame(width: 700, height: 600, alignment: .top)
                 }
                 
                 Section {
@@ -65,7 +65,7 @@ struct ContentView: View {
                         }
                         //FreqencyChart();
                     }
-                    .frame(width: 700, height: 350, alignment: .top)
+                    .frame(width: 700, height: 600, alignment: .top)
                 }
                 
                 Section {
@@ -86,7 +86,8 @@ struct ContentView: View {
                             Spectrogram();
                         }
                     }
-                    .frame(width: 700, height: 350, alignment: .top)
+                    .frame(width: 700, height: 600, alignment: .top)
+                    //.frame(width: 700, height: 1300, alignment: .top)
                 }
 
             }
@@ -137,7 +138,7 @@ struct ContentView: View {
         .chartYAxis {
             AxisMarks(position: .leading)
         }
-        //.chartYScale(type: .log)
+        .chartYScale(type: .log)
         /*
         .chartYAxisLabel(position: .leading) {
             Text("Frequency (Hz)")
@@ -153,7 +154,8 @@ struct ContentView: View {
     func Spectrogram() -> some View {
         Image(uiImage: im)
             .resizable()
-            .frame(width: 600, height: 280)
+            .frame(width: 620, height: 420)
+            //.frame(width: 1000, height: 700)
     }
         
     /*

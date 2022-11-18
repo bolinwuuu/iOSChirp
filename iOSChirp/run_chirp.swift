@@ -147,7 +147,8 @@ class Run_Chirp {
         
         vDSP.multiply(-dt, freq1, result: &freq1);
         
-        let freq2 = [Double](repeating: maxFreq, count: Int(sampleN - lastSample) - 1);
+        //let freq2 = [Double](repeating: maxFreq, count: Int(sampleN - lastSample) - 1);
+        let freq2 = [Double](repeating: maxFreq, count: min(Int(freq1.count / 8), Int(sampleN - lastSample) - 1));
         
         /*
         vDSP_vramp(&vzero,
@@ -207,7 +208,7 @@ class Run_Chirp {
     }
     
     func run_mode_2() -> [Coords] {
-        var cd = [Coords](repeating: Coords(x_in: 0, y_in: 0), count: self.t.count);
+        var cd = [Coords](repeating: Coords(x_in: 0, y_in: 0), count: self.freq.count);
         
         var idx = 0;
         while (idx < cd.count) {
@@ -220,8 +221,7 @@ class Run_Chirp {
     }
     
     func run_mode_3() -> [Coords] {
-        var cd = [Coords](repeating: Coords(x_in: 0, y_in: 0), count: self.t.count);
-        
+        var cd = [Coords](repeating: Coords(x_in: 0, y_in: 0), count: self.freq.count);
         var idx = 0;
         while (idx < cd.count) {
             cd[idx].x_val = self.t[idx];
@@ -232,21 +232,25 @@ class Run_Chirp {
     }
     
     
-    func run_mode_4() -> UIImage {
+    func run_mode_4(zero_padding: Int) -> UIImage {
         let bufferCount: Int = 40;
 
         var sampleCount: Int = 0;
 
-        let piece_len = Int(sampleN) / bufferCount;
+        //let piece_len = Int(sampleN) / bufferCount;
+        let piece_len = Int(Int(self.freq.count) / bufferCount);
         
-        var truncate = false;
+        //var truncate = false;
+        // zero-pad to next power of 2
+        sampleCount = Int(pow(2, ceil(log2(Double(piece_len))))) * zero_padding;
         
+        /*
         if ((Double(piece_len) - pow(2, floor(log2(Double(piece_len))))) / Double(piece_len) < 0.1) {             // truncate
             sampleCount = Int(pow(2, floor(log2(Double(piece_len)))));
             truncate = true;
         } else {            // 0-padding
             sampleCount = Int(pow(2, ceil(log2(Double(piece_len)))));
-        }
+        }*/
         
         var splitComplexRealInput: [Float] = [Float](repeating: 0, count: sampleCount);
         let splitComplexImaginaryInput = [Float](repeating: 0, count: sampleCount);
@@ -255,14 +259,29 @@ class Run_Chirp {
         
         var magnitudes = [Float](repeating: 0, count: sampleCount);
         
+        
+        
+        // log scale y-axis
+        var last_exp: Int = Int(floor(log2(Double(sampleCount / 2)))) - 1;
+        var last_idx: Int = Int(pow(2, Double(last_exp))) - 1;
+        
+        //last_idx -= 2 * NSDecimalNumber(decimal: pow(2, last_exp)).intValue;
+
+        let len_log = last_exp * Int(pow(2, Double(last_exp)));
+        // data of a column in log scale
+        var mag_log = [Float](repeating: 0, count: len_log);
+        
         for i in stride(from: 0, to: bufferCount * piece_len, by: piece_len) {
+            /*
             if (truncate) {     // truncate
                 vDSP.convertElements(of: h[i..<i + sampleCount],
                                      to: &splitComplexRealInput);
             } else {            // 0-padding
                 vDSP.convertElements(of: h[i..<i + piece_len],
                                      to: &splitComplexRealInput);
-            }
+            }*/
+            vDSP.convertElements(of: h[i..<i + piece_len],
+                                 to: &splitComplexRealInput);
             
             let splitComplexDFT = try? vDSP.DiscreteFourierTransform(previous: nil,
                                               count: sampleCount,
@@ -278,10 +297,70 @@ class Run_Chirp {
 
             vDSP.absolute(forwardOutput, result: &magnitudes);
             
-            freqDomainValues += magnitudes[0..<sampleCount / 2];
+            var idx: Int = 0;
+            var cur_exp: Int = 0;
+            var idx_log = 0;
+
+            while (idx < last_idx) {
+                let forw = Int(pow(2, Double(cur_exp)));
+                let backw = Int(pow(2, Double(last_exp - cur_exp)));
+                var temp_idx = idx;        // + 1
+                while (temp_idx < idx + forw) {
+                    //print(idx_log)
+                    let temp_val = magnitudes[temp_idx];
+                    vDSP.fill(&mag_log[idx_log..<idx_log + backw], with: temp_val);
+                    idx_log += backw;
+                    temp_idx += 1;
+                }
+                idx = temp_idx;
+
+                cur_exp += 1;
+            }
+            
+            freqDomainValues += mag_log;
         }
+        // log scale y-axis end
         
-        let maxFloat = vDSP.maximum(freqDomainValues)
+        
+        /*
+        // linear scale y-axis
+         for i in stride(from: 0, to: bufferCount * piece_len, by: piece_len) {
+             /*
+             if (truncate) {     // truncate
+                 vDSP.convertElements(of: h[i..<i + sampleCount],
+                                      to: &splitComplexRealInput);
+             } else {            // 0-padding
+                 vDSP.convertElements(of: h[i..<i + piece_len],
+                                      to: &splitComplexRealInput);
+             }*/
+             
+             vDSP.convertElements(of: h[i..<i + piece_len],
+                                  to: &splitComplexRealInput);
+             
+             let splitComplexDFT = try? vDSP.DiscreteFourierTransform(previous: nil,
+                                               count: sampleCount,
+                                               direction: .forward,
+                                               transformType: .complexComplex,
+                                               ofType: Float.self);
+
+             var splitComplexOutput = splitComplexDFT?.transform(real: splitComplexRealInput, imaginary: splitComplexImaginaryInput);
+
+             let forwardOutput = DSPSplitComplex(
+                 realp: UnsafeMutablePointer<Float>(&( splitComplexOutput!.real)),
+                 imagp: UnsafeMutablePointer<Float>(&( splitComplexOutput!.imaginary)));
+
+             vDSP.absolute(forwardOutput, result: &magnitudes);
+             
+             freqDomainValues += magnitudes[0..<sampleCount / 2];
+         }
+        let len_log = sampleCount / 2;
+        // linear scale y-axis end
+        */
+        
+        
+        let maxFreqVal = vDSP.maximum(freqDomainValues)
+        let maxFloat = maxFreqVal * 1.2
+        let minFloat = 0 - maxFreqVal * 0.2
         
         let rgbImageFormat: vImage_CGImageFormat = {
             guard let format = vImage_CGImageFormat(
@@ -301,7 +380,7 @@ class Run_Chirp {
         /// RGB vImage buffer that contains a vertical representation of the audio spectrogram.
         var rgbImageBuffer: vImage_Buffer = {
             guard let buffer = try? vImage_Buffer(
-                width: sampleCount / 2,
+                width: len_log,        //sampleCount / 2,
                 height: bufferCount,
                 bitsPerPixel: rgbImageFormat.bitsPerPixel) else {
                 fatalError("Unable to initialize image buffer.")
@@ -313,22 +392,25 @@ class Run_Chirp {
         var rotatedImageBuffer: vImage_Buffer = {
             guard let buffer = try? vImage_Buffer(
                 width: bufferCount,
-                height: sampleCount / 2,
+                height: len_log,       //sampleCount / 2,
                 bitsPerPixel: rgbImageFormat.bitsPerPixel)  else {
                 fatalError("Unable to initialize rotated image buffer.")
             }
             return buffer
         }()
         
+        //let maxFloats: [Float] = [255, maxFloat, maxFloat, maxFloat]
+        //let minFloats: [Float] = [255, 0, 0, 0]
         let maxFloats: [Float] = [255, maxFloat, maxFloat, maxFloat]
-        let minFloats: [Float] = [255, 0, 0, 0]
+        let minFloats: [Float] = [255, minFloat, minFloat, minFloat]
         
         freqDomainValues.withUnsafeMutableBufferPointer {
             var planarImageBuffer = vImage_Buffer(
                 data: $0.baseAddress!,
                 height: vImagePixelCount(bufferCount),
-                width: vImagePixelCount(sampleCount / 2),
-                rowBytes: sampleCount / 2 * MemoryLayout<Float>.stride)
+                width: vImagePixelCount(len_log),  //sampleCount / 2),
+                rowBytes: (len_log) * MemoryLayout<Float>.stride)
+                //rowBytes: sampleCount / 2 * MemoryLayout<Float>.stride)
             
             vImageConvert_PlanarFToARGB8888(
                 &planarImageBuffer,
@@ -397,17 +479,17 @@ class Run_Chirp {
 
 var test = Run_Chirp(mass1: 30, mass2: 30);
 
-var runMode = 2;
+//var runMode = 2;
 
 var waveData = test.run_mode(runMode: 2);
 
 var freqData = test.run_mode(runMode: 3);
 
-var y_label = test.y_label(runMode: runMode);
+//var y_label = test.y_label(runMode: runMode);
 
-var chart_title = test.chart_title(runMode: runMode);
+//var chart_title = test.chart_title(runMode: runMode);
 
-let im = test.run_mode_4()
+let im = test.run_mode_4(zero_padding: 128)
 
 /*
 func saveImage(image: UIImage) -> Bool {
